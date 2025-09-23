@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('roles', function (Blueprint $table) {
-            $table->id('id_role');
+            $table->id();
             $table->string('nama_role', 50);
             $table->timestamps();
         });
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('nama', 100);
             $table->string('password');
             $table->unsignedBigInteger('id_role');
-            $table->foreign('id_role')->references('id')->on('roles')->cascadeOnDelete();
+            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
             $table->timestamps();
         });
     }

@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('penilaians', function (Blueprint $table) {
             $table->id('id_penilaian');
-            $table->string('nim_penilai', 20);
-            $table->string('nim_dinilai', 20);
+            $table->unsignedBigInteger('id_penilai');
+            $table->unsignedBigInteger('id_dinilai');
             $table->unsignedBigInteger('id_kriteria');
             $table->integer('skor');
             $table->date('tanggal_penilaian');
-            $table->foreign('nim_penilai')->references('nim')->on('users')->cascadeOnDelete();
-            $table->foreign('nim_dinilai')->references('nim')->on('users')->cascadeOnDelete();
+            $table->foreign('id_penilai')->references('id_user')->on('users')->cascadeOnDelete();
+            $table->foreign('id_dinilai')->references('id_user')->on('users')->cascadeOnDelete();
             $table->foreign('id_kriteria')->references('id_kriteria')->on('kriterias')->cascadeOnDelete();
             $table->timestamps();
         });
