@@ -17,5 +17,15 @@ class User extends Authenticatable
         'nama',
         'password',
         'role_id',
+        'id_jabatan',
     ];
+
+    public function role()
+    {
+        return $this->hasOne(Role::class, 'role_id');
+    }
+    public function jabatan()
+    {
+        return $this->hasOne(Jabatan::class, 'id_jabatan');
+    }
 }
