@@ -24,10 +24,10 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->hasOne(Role::class, 'role_id');
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
     public function jabatan()
     {
-        return $this->hasOne(Jabatan::class, 'id_jabatan');
+        return $this->belongsTo(Jabatan::class, 'id_jabatan');
     }
 }
