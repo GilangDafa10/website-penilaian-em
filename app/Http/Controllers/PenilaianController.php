@@ -17,41 +17,62 @@ class PenilaianController extends Controller
     {
         $user = Auth::user();
         $role = $user->role_id;
-        $divisiId = $user->divisi_id;
+        $divisiBidang = optional($user->jabatan)->bidang;
 
         $daftarTarget = collect();
 
         switch ($role) {
-            case 'admin':
-                $daftarTarget = collect();
+            case 6: // Admin
+                // Admin tidak menilai
                 break;
-            case 'kahim':
-            case 'wakahim':
-                // Bisa menilai semua user, kecuali admin & staff
-                $daftarTarget = User::whereNotIn('role_id', ['admin', 'staff'])->get();
+
+            case 1: // Kahim
+            case 2: // Wakahim
+                // Bisa menilai SEMUA (kecuali admin & diri sendiri)
+                $daftarTarget = User::with('jabatan', 'role')
+                    ->where('id_user', '!=', $user->id_user)
+                    ->whereNotIn('role_id', [5, 6]) // hanya exclude admin
+                    ->get();
                 break;
-            case 'kabid':
+
+            case 3: // Kabid
                 // Bisa menilai kahim, wakahim, kadiv & staff di divisi yang sama
-                $daftarTarget = User::whereIn('role_id', ['kadiv', 'staff', 'kahim', 'wakahim'])
-                    ->where('divisi_id', $divisiId)
-                    ->get();
+                if ($divisiBidang) {
+                    $daftarTarget = User::with('jabatan', 'role')
+                        ->where('id_user', '!=', $user->id_user)
+                        ->whereHas('jabatan', function ($query) use ($divisiBidang) {
+                            $query->where('bidang', $divisiBidang);
+                        })->orWhereIn('role_id', [1, 2])
+                        ->get();
+                }
                 break;
-            case 'kadiv':
-                // Bisa menilai kahim, wakahim, & staff di divisi yang sama
-                $daftarTarget = User::whereIn('role_id', ['staff', 'kahim', 'wakahim'])
-                    ->where('divisi_id', $divisiId)
-                    ->get();
+
+            case 4: // Kadiv
+                // Bisa menilai SEMUA di divisi yang sama (termasuk Kabid, Staff, bahkan Kahim/Wakahim jika masuk divisi — tapi biasanya tidak)
+                if ($divisiBidang) {
+                    $daftarTarget = User::with('jabatan', 'role')
+                        ->where('id_user', '!=', $user->id_user)
+                        ->whereHas('jabatan', function ($query) use ($divisiBidang) {
+                            $query->where('bidang', $divisiBidang);
+                        })->orWhereIn('role_id', [1, 2])
+                        ->get();
+                }
                 break;
-            case 'staff':
-                // Bisa menilai staff lain di divisi yang sama
-                $daftarTarget = User::whereIn('role_id', ['staff', 'kahim', 'wakahim', 'kabid', 'kadiv'])
-                    ->where('divisi_id', $divisiId)
-                    ->where('id', '!=', $user->id)
-                    ->get();
+
+            case 5: // Staff
+                // Bisa menilai SEMUA di divisi yang sama (termasuk Kadiv, Kabid, dll)
+                if ($divisiBidang) {
+                    $daftarTarget = User::with('jabatan', 'role')
+                        ->where('id_user', '!=', $user->id_user)
+                        ->whereHas('jabatan', function ($query) use ($divisiBidang) {
+                            $query->where('bidang', $divisiBidang);
+                        })->orWhereIn('role_id', [1, 2])
+                        ->get();
+                }
                 break;
         }
 
-        return view('penilaian.index', compact('daftarTarget', 'role'));
+        return view('penilaian.index', compact('daftarTarget'));
     }
 
     /**
@@ -70,44 +91,44 @@ class PenilaianController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        $request->validate(
-            [
-                'nim_dinilai' => 'required|exists:users,nim',
-                'skor' => 'required|array',
-            ]
-        );
+        $user = Auth::user(); // user yang sedang login (penilai)
 
-        $nimPenilai = $user->nim;
-        $nimDinilai = $request->input('nim_dinilai');
+        $request->validate([
+            'nim_dinilai' => 'required|exists:users,nim',
+            'nilai' => 'required|array|min:1',
+            'nilai.*' => 'required|integer|between:1,5',
+        ]);
 
-        if ($nimPenilai === $nimDinilai) {
+        // Cari user yang dinilai berdasarkan NIM
+        $targetUser = User::where('nim', $request->nim_dinilai)->firstOrFail();
+        // dd($user->id_user, $user->nim, $targetUser->id_user, $targetUser->nim);
+
+        // Cegah menilai diri sendiri (berdasarkan ID, bukan NIM)
+        if ($user->id_user === $targetUser->id_user) {
             return back()->withErrors(['error' => 'Anda tidak dapat menilai diri sendiri.']);
         }
 
         foreach ($request->nilai as $kriteriaId => $skor) {
-            Penilaian::create(
-                [
-                    'nim_penilai' => $nimPenilai,
-                    'nim_dinilai' => $nimDinilai,
-                    'id_kriteria' => $kriteriaId,
-                    'skor' => $skor,
-                    'tanggal_penilaian' => now(),
-                ],
-            );
+            Penilaian::create([
+                'id_penilai' => $user->id_user,        // ✅ simpan ID user penilai
+                'id_dinilai' => $targetUser->id_user,  // ✅ simpan ID user yang dinilai
+                'id_kriteria' => $kriteriaId,
+                'skor' => $skor,
+                'tanggal_penilaian' => now(),
+            ]);
         }
 
-        return redirect()->route('penilaian.index')->with('success', 'Penilaian berhasil disimpan.');
+        return redirect()->route('penilaian.show', $targetUser->nim)->with('success', 'Penilaian berhasil disimpan.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $nim_dinilai)
     {
-        $target = User::where('nim', $id)->firstOrFail();
+        $target = User::where('nim', $nim_dinilai)->firstOrFail();
 
-        $penilaian = Penilaian::where('nim_dinilai', $id)
+        $penilaian = Penilaian::where('id_dinilai', $target->id_user)
             ->with('kriteria', 'penilai')
             ->get();
 

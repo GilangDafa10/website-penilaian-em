@@ -8,25 +8,28 @@ class Penilaian extends Model
 {
     protected $primaryKey = 'id_penilaian';
     protected $fillable = [
-        'nim_penilai',
-        'nim_dinilai',
+        'id_penilai',
+        'id_dinilai',
         'id_kriteria',
-        'nilai',
+        'skor',
         'tanggal_penilaian',
     ];
 
-    public function kriteria()
-    {
-        return $this->belongsTo(Kriteria::class, 'id_kriteria');
-    }
-
+    // Relasi ke user yang menilai
     public function penilai()
     {
-        return $this->belongsTo(User::class, 'nim_penilai', 'nim');
+        return $this->belongsTo(User::class, 'id_penilai', 'id_user');
     }
 
+    // Relasi ke user yang dinilai
     public function dinilai()
     {
-        return $this->belongsTo(User::class, 'nim_dinilai', 'nim');
+        return $this->belongsTo(User::class, 'id_dinilai', 'id_user');
+    }
+
+    // Relasi ke kriteria
+    public function kriteria()
+    {
+        return $this->belongsTo(Kriteria::class, 'id_kriteria', 'id_kriteria');
     }
 }
