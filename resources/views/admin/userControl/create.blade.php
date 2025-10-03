@@ -49,7 +49,7 @@
                             <option value="">-- Pilih Jabatan --</option>
                             @foreach($jabatans as $jabatan)
                             <option value="{{ $jabatan->id_jabatan }}" {{ old('id_jabatan') == $jabatan->id_jabatan ? 'selected' : '' }}>
-                                {{ $jabatan->nama_jabatan }} ({{ $jabatan->divisi_bidang }})
+                                {{ $jabatan->nama_jabatan }} ({{ $jabatan->divisi }})
                             </option>
                             @endforeach
                         </select>

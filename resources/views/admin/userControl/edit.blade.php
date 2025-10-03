@@ -45,6 +45,23 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
+                        <label for="id_jabatan" class="form-label">Bidang</label>
+                        <select class="form-select @error('id_jabatan') is-invalid @enderror"
+                            id="id_jabatan" name="id_jabatan" required>
+                            <option value="">-- Pilih Bidang --</option>
+                            @foreach($jabatans as $jabatan)
+                            <option value="{{ $jabatan->id_jabatan }}"
+                                {{ (old('id_jabatan') ?? $user->id_jabatan) == $jabatan->id_jabatan ? 'selected' : '' }}>
+                                {{ $jabatan->bidang }}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('id_jabatan')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6 mb-3">
                         <label for="id_jabatan" class="form-label">Jabatan</label>
                         <select class="form-select @error('id_jabatan') is-invalid @enderror"
                             id="id_jabatan" name="id_jabatan" required>
@@ -52,7 +69,7 @@
                             @foreach($jabatans as $jabatan)
                             <option value="{{ $jabatan->id_jabatan }}"
                                 {{ (old('id_jabatan') ?? $user->id_jabatan) == $jabatan->id_jabatan ? 'selected' : '' }}>
-                                {{ $jabatan->nama_jabatan }} ({{ $jabatan->divisi_bidang }})
+                                {{ $jabatan->nama_jabatan }} ({{ $jabatan->divisi }})
                             </option>
                             @endforeach
                         </select>

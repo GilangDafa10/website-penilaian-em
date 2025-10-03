@@ -25,7 +25,8 @@
                             <th scope="col">#</th>
                             <th scope="col">Nama</th>
                             <th scope="col">NIM</th>
-                            <th scope="col">Divisi / Bidang</th>
+                            <th scope="col">Bidang</th>
+                            <th scope="col">Divisi</th>
                             <th scope="col">Role</th>
                             <th scope="col" class="text-end">Aksi</th>
                         </tr>
@@ -42,7 +43,14 @@
                                 @if($user->is_admin)
                                 <span class="badge bg-danger">Admin</span>
                                 @else
-                                <span class="badge bg-success">{{ $user->jabatan->divisi_bidang }}</span>
+                                <span class="badge bg-success">{{ $user->jabatan->bidang }}</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($user->is_admin)
+                                <span class="badge bg-danger">Admin</span>
+                                @else
+                                <span class="badge bg-success">{{ $user->jabatan->divisi }}</span>
                                 @endif
                             </td>
                             <td>

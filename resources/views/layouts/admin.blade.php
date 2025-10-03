@@ -79,6 +79,9 @@
             <a href="{{ route('admin.userControl.index') }}" class="nav-link">
                 <i class="fas fa-users me-2"></i> Pengguna
             </a>
+            <a href="{{ route('penilaian.index') }}" class="nav-link">
+                <i class="fa-solid fa-square-poll-vertical me-2"></i> Penilaian
+            </a>
             <a href="#" class="nav-link">
                 <i class="fas fa-box me-2"></i> Produk
             </a>
