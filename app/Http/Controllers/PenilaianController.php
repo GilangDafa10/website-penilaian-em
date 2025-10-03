@@ -17,56 +17,122 @@ class PenilaianController extends Controller
     {
         $user = Auth::user();
         $role = $user->role_id;
-        $divisiBidang = optional($user->jabatan)->bidang;
+        $jabatan = $user->jabatan;
+        $bidangUser = optional($jabatan)->bidang;
+        $divisiUser = optional($jabatan)->divisi;
 
         $daftarTarget = collect();
 
         switch ($role) {
             case 6: // Admin
-                // Admin tidak menilai
+                // Tidak menilai siapa pun
                 break;
 
             case 1: // Kahim
             case 2: // Wakahim
-                // Bisa menilai SEMUA (kecuali admin & diri sendiri)
+                // Bisa menilai SEMUA kecuali Staff (role_id = 5) dan diri sendiri
                 $daftarTarget = User::with('jabatan', 'role')
                     ->where('id_user', '!=', $user->id_user)
-                    ->whereNotIn('role_id', [5, 6]) // hanya exclude admin
+                    ->where('role_id', '!=', 5) // exclude staff
+                    ->where('role_id', '!=', 6) // exclude admin (opsional, tapi aman)
                     ->get();
                 break;
 
             case 3: // Kabid
-                // Bisa menilai kahim, wakahim, kadiv & staff di divisi yang sama
-                if ($divisiBidang) {
+                // Bisa menilai:
+                // - Semua user (kecuali diri sendiri) yang memiliki bidang SAMA
+                // - Kahim & Wakahim (role 1,2)
+                if ($bidangUser) {
                     $daftarTarget = User::with('jabatan', 'role')
                         ->where('id_user', '!=', $user->id_user)
-                        ->whereHas('jabatan', function ($query) use ($divisiBidang) {
-                            $query->where('bidang', $divisiBidang);
-                        })->orWhereIn('role_id', [1, 2])
+                        ->where(function ($query) use ($bidangUser) {
+                            // User dengan bidang sama (bisa Kabid, Kadiv, Staff — asal bidangnya cocok)
+                            $query->whereHas('jabatan', function ($q) use ($bidangUser) {
+                                $q->where('bidang', $bidangUser);
+                            })
+                                // PLUS Kahim & Wakahim
+                                ->orWhereIn('role_id', [1, 2]);
+                        })
                         ->get();
                 }
                 break;
 
             case 4: // Kadiv
-                // Bisa menilai SEMUA di divisi yang sama (termasuk Kabid, Staff, bahkan Kahim/Wakahim jika masuk divisi — tapi biasanya tidak)
-                if ($divisiBidang) {
+                // Bisa menilai:
+                // - Kabid yang bidangnya SAMA dengan divisi Kadiv? 
+                //   → Tapi ini ambigu! Biasanya: **divisi berada di bawah bidang**
+                //   Misal: Bidang "Kemahasiswaan" → Divisi "Olahraga", "Seni"
+                //   Maka: Kadiv "Olahraga" berada di bawah Kabid "Kemahasiswaan"
+                //
+                // Jadi, asumsi kita:
+                // - `divisi` punya relasi implisit ke `bidang` via struktur organisasi
+                // - TAPI di database, kita tidak punya relasi eksplisit
+                //
+                // 🚨 MASALAH: Bagaimana tahu Kabid mana yang "menaungi" divisi ini?
+                //
+                // Solusi sementara (jika tidak ada relasi eksplisit):
+                // → Asumsikan **nama bidang = nama divisi induk**, atau
+                // → Tambahkan kolom `bidang_id` di divisi, atau
+                // → Simpan `bidang` juga di divisi (redundan tapi praktis)
+                //
+                // Untuk sekarang, asumsikan: **divisi punya kolom `bidang` juga**
+                // atau: **Kabid dan Kadiv/Staff menggunakan `bidang` yang sama**
+                //
+                // Jika tidak, logika ini tidak bisa jalan.
+                //
+                // ✅ Asumsi: `jabatan.divisi` dan `jabatan.bidang` keduanya ada,
+                // dan untuk Kadiv/Staff, `bidang` juga diisi sesuai bidang induknya.
+                //
+                // Maka:
+                if ($bidangUser || $divisiUser) {
                     $daftarTarget = User::with('jabatan', 'role')
                         ->where('id_user', '!=', $user->id_user)
-                        ->whereHas('jabatan', function ($query) use ($divisiBidang) {
-                            $query->where('bidang', $divisiBidang);
-                        })->orWhereIn('role_id', [1, 2])
+                        ->where(function ($query) use ($bidangUser, $divisiUser) {
+                            // 1. Kabid dengan bidang sama
+                            $query->where('role_id', 3)
+                                ->whereHas('jabatan', fn($q) => $q->where('bidang', $bidangUser ?? $divisiUser));
+
+                            // 2. Staff dengan divisi sama
+                            $query->orWhere(function ($q) use ($divisiUser) {
+                                $q->where('role_id', 5)
+                                    ->whereHas('jabatan', fn($j) => $j->where('divisi', $divisiUser));
+                            });
+
+                            // 3. Kahim & Wakahim
+                            $query->orWhereIn('role_id', [1, 2]);
+                        })
                         ->get();
                 }
                 break;
 
             case 5: // Staff
-                // Bisa menilai SEMUA di divisi yang sama (termasuk Kadiv, Kabid, dll)
-                if ($divisiBidang) {
+                // Bisa menilai:
+                // - Kadiv di divisi yang sama
+                // - Kabid di bidang yang sama
+                // - Kahim & Wakahim
+                if ($divisiUser || $bidangUser) {
                     $daftarTarget = User::with('jabatan', 'role')
                         ->where('id_user', '!=', $user->id_user)
-                        ->whereHas('jabatan', function ($query) use ($divisiBidang) {
-                            $query->where('bidang', $divisiBidang);
-                        })->orWhereIn('role_id', [1, 2])
+                        ->where(function ($query) use ($divisiUser, $bidangUser) {
+                            // Kadiv (role 4) dengan divisi sama
+                            $query->where('role_id', 4)
+                                ->whereHas('jabatan', fn($q) => $q->where('divisi', $divisiUser));
+
+                            // Kabid (role 3) dengan bidang sama
+                            $query->orWhere(function ($q) use ($bidangUser) {
+                                $q->where('role_id', 3)
+                                    ->whereHas('jabatan', fn($j) => $j->where('bidang', $bidangUser));
+                            });
+
+                            // 2. Staff dengan divisi sama
+                            $query->orWhere(function ($q) use ($divisiUser) {
+                                $q->where('role_id', 5)
+                                    ->whereHas('jabatan', fn($j) => $j->where('divisi', $divisiUser));
+                            });
+
+                            // Kahim & Wakahim
+                            $query->orWhereIn('role_id', [1, 2]);
+                        })
                         ->get();
                 }
                 break;
