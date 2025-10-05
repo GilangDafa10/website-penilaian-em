@@ -1,41 +1,45 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <h2>Hasil Penilaian: {{ $target->nama }}</h2>
-    <p><strong>NIM:</strong> {{ $target->nim }}</p>
+    <p><strong>NIM:</strong> {{ $target->nim ?? '-' }}</p>
 
-    @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>No</th>
+                    <th>Penilai</th>
+                    @foreach($kriteriaList as $kriteria)
+                    <th>{{ $kriteria->nama_kriteria }}</th>
+                    @endforeach
+                    <th>Tanggal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($dataPivot as $index => $row)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $row['penilai'] }}</td>
+                    @foreach($kriteriaList as $kriteria)
+                    <td class="text-center">
+                        {{ $row['kriteria'][$kriteria->nama_kriteria] ?? '-' }}
+                    </td>
+                    @endforeach
+                    <td>{{ $row['tanggal'] }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="{{ 3 + $kriteriaList->count() }}" class="text-center">
+                        Belum ada data penilaian.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
-    @if($penilaian->isEmpty())
-    <div class="alert alert-warning">Belum ada penilaian untuk pengguna ini.</div>
-    @else
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Penilai</th>
-                <th>Kriteria</th>
-                <th>Skor</th>
-                <th>Tanggal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($penilaian as $p)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $p->penilai->nama ?? '–' }}</td>
-                <td>{{ $p->kriteria->nama_kriteria ?? '–' }}</td>
-                <td>{{ $p->skor }}</td>
-                <td>{{ $p->tanggal_penilaian ? \Carbon\Carbon::parse($p->tanggal_penilaian)->format('d-m-Y') : '–' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @endif
-
-    <a href="{{ route('penilaian.index') }}" class="btn btn-secondary">Kembali</a>
+    <a href="{{ url()->previous() }}" class="btn btn-secondary">Kembali</a>
 </div>
 @endsection

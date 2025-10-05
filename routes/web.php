@@ -22,7 +22,7 @@ Route::resource('userControl', App\Http\Controllers\UserController::class)->midd
     'destroy' => 'admin.userControl.destroy',
 ]);
 
-Route::group(['middleware' => 'role:Kahim,Wakahim,Kabid,Kabiv,Staff'], function () {
+Route::group(['middleware' => 'role:Kahim,Wakahim,Kabid,Kadiv,Staff'], function () {
     Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
     Route::get('/penilaian/create/{nim}', [PenilaianController::class, 'create'])->name('penilaian.create');
     Route::post('/penilaian', [PenilaianController::class, 'store'])->name('penilaian.store');

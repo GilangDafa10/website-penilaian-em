@@ -192,13 +192,32 @@ class PenilaianController extends Controller
      */
     public function show(string $nim_dinilai)
     {
+        // Cari user berdasarkan NIM (bukan ID)
         $target = User::where('nim', $nim_dinilai)->firstOrFail();
 
-        $penilaian = Penilaian::where('id_dinilai', $target->id_user)
-            ->with('kriteria', 'penilai')
+        // Ambil semua kriteria
+        $kriteriaList = Kriteria::orderBy('id_kriteria')->get();
+
+        // Ambil semua penilaian untuk user ini
+        $penilaian = Penilaian::with(['penilai', 'kriteria'])
+            ->where('id_dinilai', $target->id_user) // tetap pakai id_dinilai (foreign key ke users.id_user)
             ->get();
 
-        return view('penilaian.show', compact('target', 'penilaian'));
+        // Transformasi ke format pivot
+        $dataPivot = $penilaian
+            ->groupBy('id_penilai')
+            ->map(function ($items) {
+                $first = $items->first();
+                return [
+                    'penilai' => $first->penilai->nama,
+                    'tanggal' => $first->created_at->format('d-m-Y'),
+                    'kriteria' => $items->pluck('skor', 'kriteria.nama_kriteria')->toArray(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return view('penilaian.show', compact('target', 'kriteriaList', 'dataPivot'));
     }
 
     /**
