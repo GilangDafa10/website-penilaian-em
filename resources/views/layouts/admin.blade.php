@@ -73,6 +73,9 @@
     <!-- Sidebar (Navigasi Admin) -->
     <div class="sidebar d-md-block collapse" id="sidebar">
         <div class="list-group list-group-flush">
+            <a href="{{ route('userProfil.show') }}" class="nav-link">
+                <i class="fas fa-users me-2"></i> Profile
+            </a>
             <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>

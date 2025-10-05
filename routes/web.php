@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PenilaianController;
+use App\Http\Controllers\UserProfilController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -27,6 +28,11 @@ Route::group(['middleware' => 'role:Kahim,Wakahim,Kabid,Kadiv,Staff'], function 
     Route::get('/penilaian/create/{nim}', [PenilaianController::class, 'create'])->name('penilaian.create');
     Route::post('/penilaian', [PenilaianController::class, 'store'])->name('penilaian.store');
     Route::get('/penilaian/{nim}', [PenilaianController::class, 'show'])->name('penilaian.show');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [UserProfilController::class, 'show'])->name('userProfil.show');
+    Route::post('/profile', [UserProfilController::class, 'updatePassword'])->name('userProfil.update-password');
 });
 
 
