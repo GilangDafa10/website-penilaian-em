@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PenilaianController;
 use App\Http\Controllers\UserProfilController;
+use App\Http\Controllers\HasilNilaiController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -22,6 +23,7 @@ Route::resource('userControl', App\Http\Controllers\UserController::class)->midd
     'update' => 'admin.userControl.update',
     'destroy' => 'admin.userControl.destroy',
 ]);
+Route::get('/hasilnilai', [HasilNilaiController::class, 'index'])->middleware('role:Admin')->name('hasilNilai.index');
 
 Route::group(['middleware' => 'role:Kahim,Wakahim,Kabid,Kadiv,Staff'], function () {
     Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
@@ -34,10 +36,3 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [UserProfilController::class, 'show'])->name('userProfil.show');
     Route::post('/profile', [UserProfilController::class, 'updatePassword'])->name('userProfil.update-password');
 });
-
-
-
-// Route::group(['middleware' => 'auth'], function () {
-//     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-//     Route::resource('posts', App\Http\Controllers\PostController::class);
-// });
