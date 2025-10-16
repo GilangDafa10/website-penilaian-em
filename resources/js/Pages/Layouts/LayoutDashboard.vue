@@ -19,7 +19,7 @@
         >
             <!-- Header -->
             <div
-                class="p-3 border-b border-gray-700 flex items-center justify-start gap-3.5"
+                class="py-3 px-5 border-b border-gray-700 flex items-center justify-start gap-3.5"
             >
                 <img :src="logoEM" alt="Logo EM" class="h-9 w-auto" />
                 <span

@@ -21,11 +21,17 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="bg-color min-h-screen flex items-center justify-center">
+    <div
+        class="bg-color min-h-screen flex items-center justify-center px-2 sm:px-0"
+    >
         <div
-            class="flex flex-col items-center w-full max-w-md bg-gray-100 rounded-2xl shadow-lg p-8 space-y-6"
+            class="flex flex-col items-center w-full max-w-md bg-gray-100 rounded-2xl shadow-lg p-4 sm:p-8 space-y-6"
         >
-            <img :src="logoEM" alt="Logo EM" class="h-25 w-auto" />
+            <img
+                :src="logoEM"
+                alt="Logo EM"
+                class="h-20 sm:h-24 w-auto mb-2 sm:mb-4"
+            />
 
             <form @submit.prevent="submit" class="space-y-4 w-full">
                 <!-- NIM -->
@@ -36,7 +42,7 @@ const submit = () => {
                     <input
                         v-model="form.nim"
                         type="text"
-                        class="p-1 mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-1 focus:outline-indigo-800 focus:border-indigo-800"
+                        class="p-2 mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-1 focus:outline-indigo-800 focus:border-indigo-800 text-base"
                         required
                         autofocus
                     />
@@ -57,7 +63,7 @@ const submit = () => {
                         <input
                             v-model="form.password"
                             :type="showPassword ? 'text' : 'password'"
-                            class="p-1 mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-1 focus:outline-indigo-800 focus:border-indigo-800 pr-10"
+                            class="p-2 mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-1 focus:outline-indigo-800 focus:border-indigo-800 pr-10 text-base"
                             required
                         />
                         <!-- Tombol ikon mata -->
@@ -96,7 +102,7 @@ const submit = () => {
                 <div>
                     <button
                         type="submit"
-                        class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
+                        class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer text-base"
                         :disabled="form.processing"
                     >
                         <span v-if="!form.processing">Login</span>

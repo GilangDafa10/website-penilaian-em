@@ -54,12 +54,23 @@
                         <label class="block text-gray-700 mb-2"
                             >Password (Kosongkan jika tidak diubah)</label
                         >
-                        <input
-                            v-model="form.password"
-                            type="password"
-                            class="w-full p-2 border rounded"
-                            :class="{ 'border-red-500': errors.password }"
-                        />
+                        <div class="relative">
+                            <input
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                class="w-full p-2 pr-10 border rounded"
+                                :class="{ 'border-red-500': errors.password }"
+                            />
+                            <button
+                                type="button"
+                                @click="showPassword = !showPassword"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-indigo-600"
+                                tabindex="-1"
+                            >
+                                <Eye v-if="!showPassword" class="h-5 w-5" />
+                                <EyeOff v-else class="h-5 w-5" />
+                            </button>
+                        </div>
                         <div
                             v-if="errors.password"
                             class="text-red-500 text-sm mt-1"
@@ -167,7 +178,7 @@
                 <div class="flex space-x-3 mt-6">
                     <button
                         type="submit"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        class="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                         :disabled="form.processing"
                     >
                         Perbarui
@@ -188,12 +199,16 @@
 import { ref } from "vue";
 import { Link, useForm, usePage } from "@inertiajs/vue3";
 import DashboardLayout from "@/Pages/Layouts/LayoutDashboard.vue";
+import { Eye, EyeOff } from "lucide-vue-next";
 
 const props = defineProps({
     user: Object,
     roles: Array,
     jabatans: Array,
 });
+
+// State untuk toggle show/hide password
+const showPassword = ref(false);
 
 const form = useForm({
     id_user: props.user.id_user,

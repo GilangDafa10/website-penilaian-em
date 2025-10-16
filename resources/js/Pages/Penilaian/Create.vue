@@ -62,7 +62,7 @@
                                 class="flex justify-between text-sm mt-1 text-gray-600"
                             >
                                 <span>Sangat Buruk</span>
-                                <span>BuruK</span>
+                                <span>Buruk</span>
                                 <span>Cukup</span>
                                 <span>Baik</span>
                                 <span>Sangat Baik</span>
@@ -122,7 +122,9 @@ const props = defineProps({
 
 const form = useForm({
     nim_dinilai: null,
-    nilai: {},
+    nilai: Object.fromEntries(
+        props.kriteria.map((krit) => [krit.id_kriteria, 3])
+    ),
 });
 
 const submitForm = () => {

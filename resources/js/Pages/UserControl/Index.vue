@@ -143,7 +143,7 @@
                                     >
                                     <button
                                         @click="openDeleteModal(user.id_user)"
-                                        class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md shadow"
+                                        class="cursor-pointer inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md shadow"
                                     >
                                         Hapus
                                     </button>
@@ -174,14 +174,14 @@
                         <button
                             :disabled="!users.prev_page_url"
                             @click="visitPage(users.prev_page_url)"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Sebelumnya
                         </button>
                         <button
                             :disabled="!users.next_page_url"
                             @click="visitPage(users.next_page_url)"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Selanjutnya
                         </button>
