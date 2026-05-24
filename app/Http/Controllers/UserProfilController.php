@@ -3,19 +3,26 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class UserProfilController extends Controller
 {
+    // Menampilkan halaman profil
     public function show()
     {
-        $user = Auth::user();
-        return view('userProfil.show', compact('user'));
+        $userId = Auth::id();
+        $user = User::with(['jabatan', 'role'])->find($userId);
+
+        return Inertia::render('UserProfil/Show', [
+            'user' => $user,
+            'success' => session('success'),
+        ]);
     }
 
+    // Update password
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -23,8 +30,8 @@ class UserProfilController extends Controller
             'new_password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
-        // Update password
-        $user = Auth::user();
+        $userId = Auth::id();
+        $user = User::find($userId);
         $user->password = Hash::make($request->new_password);
         $user->save();
 

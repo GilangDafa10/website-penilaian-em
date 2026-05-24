@@ -5,26 +5,34 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Inertia\Inertia;
+use Inertia\Response;
+use function Termwind\render;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    public function showLogin(): Response
     {
-        return view('auth.login');
+        return Inertia::render('Login', [
+            'errors' => session('errors') ? session('errors')->getBag('default')->getMessages() : [],
+        ]);
     }
 
     public function login(Request $request)
     {
-        $syaratLogin = $request->validate([
+        $request->validate([
             'nim' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        if (auth()->attempt($syaratLogin)) {
+        if (Auth::attempt($request->only('nim', 'password'))) {
             $request->session()->regenerate();
+
+            // Redirect ke dashboard via Inertia
             return redirect()->intended('/dashboard');
         }
 
+        // Kembalikan ke halaman login dengan error (via Inertia)
         return back()->withErrors([
             'nim' => 'The provided credentials do not match our records.',
         ])->onlyInput('nim');
@@ -32,14 +40,21 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        auth()->logout();
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        // Redirect ke login via Inertia
         return redirect('/login');
     }
 
-    public function showDashboard()
+    public function showDashboard(): Response
     {
-        return view('admin.dashboard');
+        $user = Auth::user()->load('role'); // pastikan relasi role() sudah ada di model User
+        return Inertia::render('MainContent/Dashboard', [
+            'auth' => [
+                'user' => $user,
+            ],
+        ]);
     }
 }

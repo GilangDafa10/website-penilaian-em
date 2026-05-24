@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use App\Models\Kriteria;
 use App\Models\User;
 use App\Models\Penilaian;
-use Illuminate\Support\Facades\DB;
 
 class HasilNilaiController extends Controller
 {
@@ -26,7 +26,6 @@ class HasilNilaiController extends Controller
                     ->first()?->tanggal_penilaian ?? '-',
             ];
 
-            // Simpan nilai rata-rata per kriteria (dan kumpulkan untuk hitung total)
             $nilaiKriteria = [];
 
             foreach ($kriterias as $kriteria) {
@@ -41,18 +40,17 @@ class HasilNilaiController extends Controller
                 }
             }
 
-            // 🔥 HITUNG RATA-RATA DARI SEMUA NILAI KRITERIA
-            if (count($nilaiKriteria) > 0) {
-                $rataRataSemua = round(array_sum($nilaiKriteria) / count($nilaiKriteria), 2);
-            } else {
-                $rataRataSemua = '-';
-            }
-
-            $row['rata_rata_semua_kriteria'] = $rataRataSemua;
+            $row['rata_rata_semua_kriteria'] =
+                count($nilaiKriteria) > 0
+                ? round(array_sum($nilaiKriteria) / count($nilaiKriteria), 2)
+                : '-';
 
             $data[] = $row;
         }
 
-        return view('hasilNilai.index', compact('data', 'kriterias'));
+        return Inertia::render('MainContent/HasilNilai', [
+            'data' => $data,
+            'kriterias' => $kriterias,
+        ]);
     }
 }

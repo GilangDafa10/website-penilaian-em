@@ -13,8 +13,8 @@ class Jabatan extends Model
         'divisi',
     ];
 
-    public function user()
+    public function users()
     {
-        return $this->hasMany(User::class, 'jabatan_id', 'id_jabatan', 'user_id');
+        return $this->hasMany(User::class, 'id_jabatan', 'id_jabatan');
     }
 }
