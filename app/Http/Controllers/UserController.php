@@ -12,7 +12,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with(['jabatan', 'role'])->paginate(20);
+        $users = User::with(['jabatan', 'role'])
+    ->join('roles', 'users.role_id', '=', 'roles.id')
+    ->join('jabatans', 'users.id_jabatan', '=', 'jabatans.id_jabatan')
+    ->orderBy('roles.id', 'asc') // urutan role
+    ->orderBy('jabatans.bidang', 'asc') // urutan bidang
+    ->orderBy('jabatans.divisi', 'asc') // urutan divisi
+    ->select('users.*')
+    ->paginate(20);
 
         return Inertia::render('UserControl/Index', [
             'users' => $users,
@@ -31,28 +38,26 @@ class UserController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'id_user' => 'string|unique:users,id_user',
-            'nim' => 'required|string|unique:users,nim',
-            'nama' => 'required|string',
-            'password' => 'required|string|min:6',
-            'role_id' => 'required|integer|exists:roles,id',
-            'id_jabatan' => 'required|integer|exists:jabatans,id_jabatan',
-        ]);
+{
+    $request->validate([
+    'nim' => 'required|string|unique:users,nim',
+    'nama' => 'required|string',
+    'password' => 'required|string|min:6',
+    'role_id' => 'required|integer|exists:roles,id',
+    'id_jabatan' => 'required|integer|exists:jabatans,id_jabatan',
+]);
 
-        User::create([
-            'id_user' => $request->id_user,
-            'nim' => $request->nim,
-            'nama' => $request->nama,
-            'password' => bcrypt($request->password),
-            'role_id' => $request->role_id,
-            'id_jabatan' => $request->id_jabatan,
-        ]);
+User::create([
+    'nim' => $request->nim,
+    'nama' => $request->nama,
+    'password' => bcrypt($request->password),
+    'role_id' => $request->role_id,
+    'id_jabatan' => $request->id_jabatan,
+]);
 
-        return redirect()->route('userControl.index')
-            ->with('success', 'User created successfully.');
-    }
+    return redirect()->route('userControl.index')
+        ->with('success', 'User created successfully.');
+}
 
     public function show(string $id_user)
     {
@@ -77,33 +82,33 @@ class UserController extends Controller
     }
 
     public function update(Request $request, string $id_user)
-    {
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'nim' => 'required|string|unique:users,nim,' . $id_user . ',id_user',
-            'password' => 'nullable|string|min:6',
-            'id_jabatan' => 'required|exists:jabatans,id_jabatan',
-            'role_id' => 'required|exists:roles,id',
-        ]);
+{
+    $request->validate([
+        'nama' => 'required|string|max:255',
+        'nim' => 'required|string|unique:users,nim,' . $id_user . ',id_user',
+        'password' => 'nullable|string|min:6',
+        'id_jabatan' => 'required|exists:jabatans,id_jabatan',
+        'role_id' => 'required|exists:roles,id',
+    ]);
 
-        $user = User::findOrFail($id_user);
+    $user = User::findOrFail($id_user);
 
-        $data = [
-            'nama' => $request->nama,
-            'nim' => $request->nim,
-            'id_jabatan' => $request->id_jabatan,
-            'role_id' => $request->role_id,
-        ];
+    $data = [
+        'nama' => $request->nama,
+        'nim' => $request->nim,
+        'id_jabatan' => $request->id_jabatan,
+        'role_id' => $request->role_id,
+    ];
 
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
-        $user->update($data);
-
-        return redirect()->route('userControl.index')
-            ->with('success', 'Pengguna berhasil diperbarui!');
+    if ($request->filled('password')) {
+        $data['password'] = bcrypt($request->password);
     }
+
+    $user->update($data);
+
+    return redirect()->route('userControl.index')
+        ->with('success', 'Pengguna berhasil diperbarui!');
+}
 
     public function destroy(string $id_user)
     {
@@ -113,4 +118,4 @@ class UserController extends Controller
         return redirect()->route('userControl.index')
             ->with('success', 'User deleted successfully.');
     }
-}
+}  

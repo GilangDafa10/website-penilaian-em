@@ -12,8 +12,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $primaryKey = 'id_user';
-    public $incrementing = false;
-    protected $keyType = 'string';
+public $incrementing = true;   // 🔥 WAJIB
+protected $keyType = 'int';    // 🔥 WAJIB
+
     protected $fillable = [
         'nim',
         'nama',
@@ -26,6 +27,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class, 'role_id', 'id');
     }
+
     public function jabatan()
     {
         return $this->belongsTo(Jabatan::class, 'id_jabatan');
